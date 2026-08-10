@@ -22,16 +22,19 @@
     <nav aria-label="Course navigation">
       <a href="#overview">01. Overview</a>
       <a href="#architecture">02. Architecture</a>
-      <a href="#authentication">03. Authentication</a>
-      <a href="#authorization">04. Roles & Collections</a>
-      <a href="#role-matrix">05. RDP Role Matrix</a>
-      <a href="#authorization-model">06. Authorization Model</a>
-      <a href="#sod">07. SoD</a>
-      <a href="#integration">08. S/4 Integration</a>
-      <a href="#integration-security">09. Integration Security</a>
-      <a href="#security-checklist">10. Design Checklist</a>
-      <a href="#cheatsheet">11. Cheat Sheet</a>
-      <a href="#materials">12. Learning Materials</a>
+      <a href="#btp-foundations">03. BTP Security Boundaries</a>
+      <a href="#authentication">04. Authentication</a>
+      <a href="#identity-lifecycle">05. Identity Lifecycle</a>
+      <a href="#authorization">06. Roles & Collections</a>
+      <a href="#role-matrix">07. RDP Role Matrix</a>
+      <a href="#authorization-model">08. Authorization Model</a>
+      <a href="#sod">09. SoD</a>
+      <a href="#btp-operations">10. BTP Operations</a>
+      <a href="#integration">11. S/4 Integration</a>
+      <a href="#integration-security">12. Integration Security</a>
+      <a href="#security-checklist">13. Design Checklist</a>
+      <a href="#cheatsheet">14. Cheat Sheet</a>
+      <a href="#materials">15. Learning Materials</a>
     </nav>
 
     <div class="sidebar-note">
@@ -51,7 +54,7 @@
       <div class="hero-grid">
         <div><strong>4</strong><span>Security layers</span></div>
         <div><strong>2</strong><span>Identity flows</span></div>
-        <div><strong>12</strong><span>Reference sections</span></div>
+        <div><strong>15</strong><span>Reference sections</span></div>
       </div>
     </header>
 
@@ -133,9 +136,45 @@
       </div>
     </section>
 
-    <section id="authentication">
+    <section id="btp-foundations">
       <div class="section-heading">
         <span>03</span>
+        <div><h2>BTP Security Boundaries</h2><p>Know which layer owns each control.</p></div>
+      </div>
+
+      <p>
+        SAP BTP is organized into global accounts, optional directories, and region-specific subaccounts.
+        RDP subscriptions, trust configuration, role collections, service instances, and most integration
+        settings are governed at subaccount level. A global-account administrator is not automatically the
+        correct operational owner for RDP access.
+      </p>
+
+      <div class="boundary-stack" aria-label="SAP BTP account hierarchy">
+        <div><strong>Global Account</strong><span>Contract, directories, entitlements, quotas, and global members</span></div>
+        <div><strong>Directory</strong><span>Optional grouping and delegated entitlement/authorization boundary</span></div>
+        <div><strong>Subaccount</strong><span>Region, subscriptions, trust, role collections, destinations, and services</span></div>
+        <div><strong>Environment</strong><span>Cloud Foundry org/spaces or other enabled runtime environment</span></div>
+        <div><strong>RDP Subscription</strong><span>SAP-delivered roles and application functions</span></div>
+      </div>
+
+      <h3>Landscape design decisions</h3>
+      <div class="cards two">
+        <article class="card"><span class="card-kicker">Isolation</span><h3>Separate lifecycle stages</h3><p>Use separate subaccounts for production and non-production when the landscape permits. This separates trust, destinations, service credentials, administrators, and audit scope.</p></article>
+        <article class="card"><span class="card-kicker">Region</span><h3>Place data deliberately</h3><p>Record the selected region, regulatory rationale, service availability, and recovery implications. Subaccounts are region-specific and independent.</p></article>
+        <article class="card"><span class="card-kicker">Administration</span><h3>Separate platform and business access</h3><p>Global-account, subaccount, Cloud Foundry, integration, and RDP business roles are distinct privilege domains. Avoid bundling them into one administrator identity.</p></article>
+        <article class="card"><span class="card-kicker">Inventory</span><h3>Document deployed resources</h3><p>Capture subscriptions, entitlements, service instances, keys, destinations, Cloud Connector mappings, trust providers, and accountable owners.</p></article>
+      </div>
+
+      <div class="callout warning">
+        The supplied BTP learning material includes Neo environment and older feature terminology. This guide
+        uses the durable account concepts but treats the current SAP Help Portal and the customer's actual
+        subaccount as the authority for available environments, services, and administrative roles.
+      </div>
+    </section>
+
+    <section id="authentication">
+      <div class="section-heading">
+        <span>04</span>
         <div><h2>BTP Authentication</h2><p>Authentication answers: “Who are you?”</p></div>
       </div>
 
@@ -167,9 +206,39 @@
       </ul>
     </section>
 
+    <section id="identity-lifecycle">
+      <div class="section-heading">
+        <span>05</span>
+        <div><h2>Identity Lifecycle & Trust</h2><p>Design authentication, provisioning, and authorization as separate controls.</p></div>
+      </div>
+
+      <div class="compare">
+        <div><h3>Authentication trust</h3><p>Configure the corporate identity provider directly or through SAP Cloud Identity Services - Identity Authentication. Validate issuer, subject identifiers, signing certificates, login policy, and MFA.</p></div>
+        <div><h3>Provisioning lifecycle</h3><p>Use governed provisioning, commonly SAP Cloud Identity Services - Identity Provisioning or an enterprise IAM process, for joiner, mover, and leaver events. Authentication alone does not remove stale assignments.</p></div>
+      </div>
+
+      <h3>Recommended workforce flow</h3>
+      <div class="flow"><span>Group-based access</span><code>HR / IAM → IdP user & group → BTP group mapping → Z_RDP_* role collection → SAP RDP roles</code></div>
+
+      <ul class="checklist">
+        <li>Use a stable, unique subject identifier and test name/email changes.</li>
+        <li>Require MFA and stronger controls for platform, security, data-access, and integration administrators.</li>
+        <li>Map governed IdP groups to role collections instead of relying on direct user assignments at scale.</li>
+        <li>Define who may create mappings, change group membership, approve access, and certify it.</li>
+        <li>Test disabling a user, removing a group, changing a persona, and terminating an administrator.</li>
+        <li>Monitor trust-certificate expiry and maintain a tested rollover procedure.</li>
+      </ul>
+
+      <div class="callout important">
+        <strong>Troubleshooting order:</strong> confirm successful IdP authentication, inspect the asserted
+        user/group attributes, confirm the BTP role-collection mapping, then confirm the SAP-delivered RDP
+        role and application-level data assignment. Each step is a separate failure point.
+      </div>
+    </section>
+
     <section id="authorization">
       <div class="section-heading">
-        <span>04</span>
+        <span>06</span>
         <div><h2>Roles & Role Collections</h2><p>Authorization answers: “What are you allowed to do?”</p></div>
       </div>
 
@@ -208,7 +277,7 @@
 
     <section id="role-matrix">
       <div class="section-heading">
-        <span>05</span>
+        <span>07</span>
         <div><h2>RDP Security Role Matrix</h2><p>Map SAP-delivered roles to customer-defined business access.</p></div>
       </div>
 
@@ -277,7 +346,7 @@
     </section>
 
     <section id="authorization-model">
-      <div class="section-heading"><span>06</span><div><h2>Visual Authorization Model</h2><p>Trace a workforce identity to an RDP function.</p></div></div>
+      <div class="section-heading"><span>08</span><div><h2>Visual Authorization Model</h2><p>Trace a workforce identity to an RDP function.</p></div></div>
       <div class="authorization-chain" aria-label="RDP authorization chain">
         <div><strong>Corporate IdP</strong><span>Authenticates the workforce identity</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
         <div><strong>BTP User / Group</strong><span>Federated subject and mapped group</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
@@ -289,7 +358,7 @@
     </section>
 
     <section id="sod">
-      <div class="section-heading"><span>07</span><div><h2>Segregation of Duties</h2><p>Separate access that can create, grant, execute, or erase evidence.</p></div></div>
+      <div class="section-heading"><span>09</span><div><h2>Segregation of Duties</h2><p>Separate access that can create, grant, execute, or erase evidence.</p></div></div>
       <div class="table-scroll" role="region" aria-label="RDP segregation of duties matrix" tabindex="0">
         <table>
           <thead><tr><th>Conflicting combination</th><th>Rationale</th><th>Recommended mitigation</th><th>Basis</th></tr></thead>
@@ -306,9 +375,41 @@
       <div class="callout important">Only rows explicitly labeled SAP-documented are SAP-stated conflicts. The others are consultant controls to assess against customer policy.</div>
     </section>
 
+    <section id="btp-operations">
+      <div class="section-heading">
+        <span>10</span>
+        <div><h2>BTP Operations & Connectivity</h2><p>Secure the platform resources around the RDP subscription.</p></div>
+      </div>
+
+      <div class="control-grid">
+        <article><strong>Trust configuration</strong><span>Corporate IdP or Identity Authentication, asserted attributes, signing certificates, MFA, and fallback administration.</span></article>
+        <article><strong>Role collections</strong><span>Named owners, group mappings, least privilege, SoD checks, emergency access, and periodic certification.</span></article>
+        <article><strong>Service instances & keys</strong><span>Purpose-specific scopes, named owner, protected secret storage, rotation, expiry, and immediate revocation when unused.</span></article>
+        <article><strong>Destinations</strong><span>Exact target, proxy type, authentication method, certificate trust, connection test, and change control.</span></article>
+        <article><strong>Cloud Connector</strong><span>Outbound tunnel, explicit virtual-to-internal host mappings, minimum resources, separate admin/auditor duties, patching, and high availability.</span></article>
+        <article><strong>Audit evidence</strong><span>RDP and BTP Audit Log service events, Cloud Connector signed audit logs, retention, export, alerting, and review ownership.</span></article>
+      </div>
+
+      <h3>Certificate and secret lifecycle</h3>
+      <ol class="steps">
+        <li><strong>Inventory</strong><span>Record certificate/key purpose, endpoint, environment, issuer, algorithm, owner, storage location, and expiry.</span></li>
+        <li><strong>Establish trust</strong><span>Install only the required root/intermediate chain in the correct trust store or PSE; validate hostname and complete chain.</span></li>
+        <li><strong>Protect private material</strong><span>Generate and retain private keys in approved secure storage. Do not email service keys, passwords, private keys, or shared administrator credentials.</span></li>
+        <li><strong>Validate</strong><span>Test the destination, Cloud Connector mapping, TLS handshake, OAuth flow, and end-to-end business message without broadening access.</span></li>
+        <li><strong>Rotate</strong><span>Alert well before expiry, rehearse rollover, replace credentials without outage, revoke the old material, and retain evidence.</span></li>
+      </ol>
+
+      <div class="callout warning">
+        <strong>Corrected source guidance:</strong> the BTP and on-premise administrators need coordinated
+        availability, but they should not both receive every credential. Split duties and provide each person
+        only the access and secret material required for their part of the configuration. Never distribute a
+        private key merely to make a configuration session easier.
+      </div>
+    </section>
+
     <section id="integration">
       <div class="section-heading">
-        <span>08</span>
+        <span>11</span>
         <div><h2>S/4HANA Integration</h2><p>Understand what is replicated before designing security.</p></div>
       </div>
 
@@ -365,7 +466,7 @@
 
     <section id="integration-security">
       <div class="section-heading">
-        <span>09</span>
+        <span>12</span>
         <div><h2>Integration Security</h2><p>Review identity, transport, authorization, and data.</p></div>
       </div>
 
@@ -407,7 +508,7 @@
 
     <section id="security-checklist">
       <div class="section-heading">
-        <span>10</span>
+        <span>13</span>
         <div><h2>Security Design Checklist</h2><p>A consultant-ready implementation and review checklist.</p></div>
       </div>
 
@@ -415,6 +516,7 @@
         <thead><tr><th>Area</th><th>Capture / Review</th></tr></thead>
         <tbody>
           <tr><td>Identity Provider</td><td>Trust model, IAS/IdP, SSO and MFA policy</td></tr>
+          <tr><td>BTP Account Model</td><td>Global account, directory, subaccount, region, environment, and lifecycle-stage boundaries</td></tr>
           <tr><td>Provisioning</td><td>Joiner / mover / leaver process and group mappings</td></tr>
           <tr><td>RDP Roles</td><td>Export the tenant catalog; record role, purpose, owner, and mapped persona</td></tr>
           <tr><td>Role Collections</td><td>Customer business-role design and naming standard</td></tr>
@@ -424,6 +526,9 @@
           <tr><td>Technical Identities</td><td>OAuth clients, service users, secret ownership and rotation</td></tr>
           <tr><td>S/4 Authorizations</td><td>PFCG roles, OData/RFC/API privileges, custom extractors</td></tr>
           <tr><td>Certificates</td><td>TLS trust, expiry and renewal ownership</td></tr>
+          <tr><td>Destinations</td><td>Target, proxy type, authentication, owner, connection test, and change history</td></tr>
+          <tr><td>Cloud Connector</td><td>Resource allowlist, admin/auditor split, patching, HA, audit logging, and backup</td></tr>
+          <tr><td>Service Instances & Keys</td><td>Scopes, credential owner, secure storage, rotation, expiry, and revocation</td></tr>
           <tr><td>Data Scope</td><td>Objects and fields transferred from source systems</td></tr>
           <tr><td>Monitoring</td><td>Authentication, authorization, integration and replication failures</td></tr>
           <tr><td>Audit Logging</td><td>Event coverage, retention, archive process, and review ownership</td></tr>
@@ -445,7 +550,7 @@
 
     <section id="cheatsheet">
       <div class="section-heading">
-        <span>11</span>
+        <span>14</span>
         <div><h2>Security Cheat Sheet</h2><p>Questions to ask when a requirement arrives.</p></div>
       </div>
 
@@ -477,11 +582,27 @@
 
     <section id="materials">
       <div class="section-heading">
-        <span>12</span>
+        <span>15</span>
         <div><h2>Official Learning Materials</h2><p>Use current SAP sources as the source of truth.</p></div>
       </div>
 
       <div class="resource-list">
+        <a href="https://help.sap.com/docs/btp/sap-business-technology-platform/account-model" target="_blank" rel="noopener">
+          <strong>SAP BTP Account Model</strong>
+          <span>Current global-account, directory, subaccount, environment, region, and space model.</span>
+        </a>
+        <a href="https://help.sap.com/docs/btp/sap-business-technology-platform/mapping-role-collections-in-subaccount" target="_blank" rel="noopener">
+          <strong>Mapping Role Collections</strong>
+          <span>Current options for direct assignment and IdP group or attribute mapping.</span>
+        </a>
+        <a href="https://help.sap.com/docs/connectivity/sap-btp-connectivity-cf/cloud-connector-audit-logging" target="_blank" rel="noopener">
+          <strong>Cloud Connector Audit Logging</strong>
+          <span>Security audit levels, signed audit files, retention, and external storage guidance.</span>
+        </a>
+        <a href="https://help.sap.com/docs/sap-audit-log" target="_blank" rel="noopener">
+          <strong>SAP Audit Log Service for SAP BTP</strong>
+          <span>Platform audit-event storage, viewer, and retrieval APIs.</span>
+        </a>
         <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/initial-configuration-roles" target="_blank" rel="noopener">
           <strong>Initial Configuration - Roles</strong>
           <span>Current standard role catalog, SAP example role collections, and documented SoD guidance.</span>
@@ -517,8 +638,9 @@
       </div>
 
       <div class="callout important">
-        SAP cloud services evolve. Before implementing a production security design, validate role names,
-        integration options and recommendations against the current SAP Help Portal for your tenant and release.
+        The supplied BTP chapters provide useful background but include historical Neo and product terminology.
+        SAP cloud services evolve: validate account features, role names, integration options, and recommendations
+        against the current SAP Help Portal and the actual tenant before implementing a production design.
       </div>
     </section>
 

@@ -5,13 +5,16 @@ A static reference site for learning SAP Responsible Design and Production (RDP)
 ## Content
 
 - SAP RDP architecture
+- SAP BTP account hierarchy and security boundaries
 - SAP BTP authentication
+- Identity lifecycle, trust, and group mapping
 - Roles and role collections
 - SAP-delivered role matrix and proposed customer role collections
 - Segregation-of-duties risks and mitigations
 - Visual authorization model
 - S/4HANA / ECC integration
 - Integration security
+- BTP destinations, Cloud Connector, service credentials, certificates, and audit logging
 - Consultant security-design checklist
 - Quick-reference cheat sheet
 - Official SAP learning links
