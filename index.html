@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Security-focused learning guide for SAP Responsible Design and Production (RDP), SAP BTP authentication, role collections, and S/4HANA integration.">
+  <title>SAP RDP Security Learning Guide</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <button class="menu-button" id="menuButton" aria-label="Toggle navigation">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">RDP</div>
+      <div>
+        <strong>SAP RDP</strong>
+        <span>Security Learning Guide</span>
+      </div>
+    </div>
+
+    <nav aria-label="Course navigation">
+      <a href="#overview">01. Overview</a>
+      <a href="#architecture">02. Architecture</a>
+      <a href="#authentication">03. Authentication</a>
+      <a href="#authorization">04. Roles & Collections</a>
+      <a href="#role-design">05. Security Role Design</a>
+      <a href="#integration">06. S/4 Integration</a>
+      <a href="#integration-security">07. Integration Security</a>
+      <a href="#review">08. Security Review</a>
+      <a href="#cheatsheet">09. Cheat Sheet</a>
+      <a href="#materials">10. Learning Materials</a>
+    </nav>
+
+    <div class="sidebar-note">
+      <strong>Learning goal</strong>
+      <span>Be able to review an RDP implementation from an SAP Security perspective.</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero" id="overview">
+      <span class="eyebrow">SAP SECURITY • MINI COURSE</span>
+      <h1>SAP Responsible Design & Production</h1>
+      <p class="lead">
+        A security-focused walkthrough of RDP architecture, SAP BTP authentication,
+        roles and role collections, and integration with SAP S/4HANA.
+      </p>
+      <div class="hero-grid">
+        <div><strong>4</strong><span>Security layers</span></div>
+        <div><strong>2</strong><span>Identity flows</span></div>
+        <div><strong>10</strong><span>Reference sections</span></div>
+      </div>
+    </header>
+
+    <section>
+      <div class="section-heading">
+        <span>01</span>
+        <div><h2>What is SAP RDP?</h2><p>Start with the product boundary.</p></div>
+      </div>
+
+      <div class="callout important">
+        <strong>Key idea:</strong> SAP Responsible Design and Production is a cloud solution on SAP BTP.
+        Treat it as a BTP application integrated with ERP—not as another ABAP module inside S/4HANA.
+      </div>
+
+      <p>
+        RDP supports sustainability processes such as Extended Producer Responsibility (EPR),
+        packaging-related reporting, packaging taxes, and packaging-data analysis. From a security
+        perspective, the important question is how human users, BTP authorization, application roles,
+        and machine-to-machine integration fit together.
+      </p>
+
+      <div class="cards three">
+        <article class="card">
+          <span class="card-kicker">Identity</span>
+          <h3>Who is the user?</h3>
+          <p>Corporate IdP / SAP Cloud Identity Services establishes the user's identity.</p>
+        </article>
+        <article class="card">
+          <span class="card-kicker">Authorization</span>
+          <h3>What may they do?</h3>
+          <p>BTP role collections bundle RDP application roles for business personas.</p>
+        </article>
+        <article class="card">
+          <span class="card-kicker">Integration</span>
+          <h3>How does data arrive?</h3>
+          <p>S/4HANA, ECC, files, or APIs supply sustainability-relevant business data.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="section-heading">
+        <span>02</span>
+        <div><h2>Architecture</h2><p>The mental model to remember.</p></div>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-box identity">Corporate Identity Provider<br><small>e.g. Microsoft Entra ID</small></div>
+        <div class="arrow">↓</div>
+        <div class="diagram-box identity">SAP Cloud Identity Services / Trust</div>
+        <div class="arrow">↓</div>
+        <div class="diagram-box btp">
+          <strong>SAP BTP Subaccount</strong>
+          <div class="diagram-inner">Role Collections</div>
+          <div class="diagram-inner">SAP Responsible Design & Production</div>
+        </div>
+        <div class="arrow split">↕ HTTPS / APIs / Replication</div>
+        <div class="diagram-box s4">
+          <strong>SAP S/4HANA / ECC</strong>
+          <small>Products • Organizations • Deliveries • Packaging • Material documents</small>
+        </div>
+      </div>
+
+      <h3>Separate the two security flows</h3>
+      <div class="flow-grid">
+        <div class="flow">
+          <span>Human IAM</span>
+          <code>IdP → User → BTP Role Collection → RDP Role → Function</code>
+        </div>
+        <div class="flow">
+          <span>Machine IAM</span>
+          <code>S/4 → Technical Identity → OAuth/API → RDP</code>
+        </div>
+      </div>
+
+      <div class="callout">
+        This separation is useful during design workshops: a user-access issue and an interface-authentication
+        issue are different security problems, even though both ultimately affect RDP.
+      </div>
+    </section>
+
+    <section id="authentication">
+      <div class="section-heading">
+        <span>03</span>
+        <div><h2>BTP Authentication</h2><p>Authentication answers: “Who are you?”</p></div>
+      </div>
+
+      <p>
+        SAP documents that RDP uses the user-management and authentication mechanisms of SAP Business
+        Technology Platform. In an enterprise environment, trust is commonly federated to SAP Cloud Identity
+        Services or another corporate identity provider.
+      </p>
+
+      <div class="compare">
+        <div>
+          <h3>Traditional S/4 mental model</h3>
+          <code>SU01 User → PFCG Role → Authorization Objects</code>
+        </div>
+        <div>
+          <h3>BTP / RDP mental model</h3>
+          <code>Identity Provider → BTP User → Role Collection → Application Role</code>
+        </div>
+      </div>
+
+      <h3>Questions for a security workshop</h3>
+      <ul class="checklist">
+        <li>Which IdP is authoritative for workforce users?</li>
+        <li>Is SAP Cloud Identity Services / IAS part of the trust chain?</li>
+        <li>How are users provisioned and deprovisioned?</li>
+        <li>Are BTP role collections assigned directly, by group mapping, or by another process?</li>
+        <li>Who can administer trust configuration?</li>
+        <li>What is the emergency-access process?</li>
+      </ul>
+    </section>
+
+    <section id="authorization">
+      <div class="section-heading">
+        <span>04</span>
+        <div><h2>Roles & Role Collections</h2><p>Authorization answers: “What are you allowed to do?”</p></div>
+      </div>
+
+      <div class="concept-stack">
+        <div><strong>Role Template</strong><span>Application-defined authorization blueprint</span></div>
+        <div class="connector">↓</div>
+        <div><strong>Role</strong><span>Concrete authorization derived from a template</span></div>
+        <div class="connector">↓</div>
+        <div><strong>Role Collection</strong><span>Bundle of roles assigned to users/groups</span></div>
+        <div class="connector">↓</div>
+        <div><strong>User</strong><span>Receives the resulting application access</span></div>
+      </div>
+
+      <div class="callout warning">
+        Do not treat a BTP role collection as technically identical to a PFCG role.
+        It is a useful conceptual comparison, but BTP does not use the classic ABAP authorization-object model.
+      </div>
+
+      <h3>Useful translation for an SAP Security consultant</h3>
+      <table>
+        <thead><tr><th>S/4 / ABAP</th><th>BTP / RDP</th><th>Comment</th></tr></thead>
+        <tbody>
+          <tr><td>SU01 user</td><td>Federated / BTP user</td><td>User identity</td></tr>
+          <tr><td>PFCG role</td><td>Role collection</td><td>Approximate business-access comparison</td></tr>
+          <tr><td>Authorization object</td><td>Application role / scope</td><td>Different technical model</td></tr>
+          <tr><td>Composite role</td><td>Role collection</td><td>Both can bundle access</td></tr>
+          <tr><td>AGR_USERS</td><td>Role-collection assignment</td><td>User-to-access mapping</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        SAP's current security recommendations explicitly encourage using RDP's fine-grained roles and
+        combining them into role collections while preserving segregation of duties.
+      </p>
+    </section>
+
+    <section id="role-design">
+      <div class="section-heading">
+        <span>05</span>
+        <div><h2>Security Role Design</h2><p>Build role collections around business personas.</p></div>
+      </div>
+
+      <p>Example customer-designed role collections:</p>
+      <div class="pill-grid">
+        <span>Z_RDP_REPORT_VIEWER</span>
+        <span>Z_RDP_COMPLIANCE_ANALYST</span>
+        <span>Z_RDP_PACKAGING_SPECIALIST</span>
+        <span>Z_RDP_CONFIGURATION_EXPERT</span>
+        <span>Z_RDP_INTEGRATION_ADMIN</span>
+      </div>
+
+      <p class="muted">
+        These are example customer naming conventions—not SAP-delivered role names.
+      </p>
+
+      <h3>Illustrative persona model</h3>
+      <table>
+        <thead>
+          <tr><th>Persona</th><th>Typical Access</th><th>Keep Separate From</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Compliance Analyst</td><td>Execute/analyze reports and obligations</td><td>High-risk configuration administration</td></tr>
+          <tr><td>Packaging Specialist</td><td>Packaging data and related analysis</td><td>Integration administration</td></tr>
+          <tr><td>Configuration Expert</td><td>Configuration and reporting setup</td><td>Conflicting operational privileges</td></tr>
+          <tr><td>Integration Administrator</td><td>Source systems and replication</td><td>Unnecessary business-processing access</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout important">
+        <strong>Documented SoD examples:</strong> SAP currently identifies conflicts including
+        <code>RDP_Report_Enabler</code> with <code>RDP_Report_Configuration_Expert</code>, and
+        <code>RDP_Data_Access_Admin</code> with <code>RDP_Report_Execution_Expert</code>.
+        Always check the current SAP Security Recommendations before finalizing a role model.
+      </div>
+    </section>
+
+    <section id="integration">
+      <div class="section-heading">
+        <span>06</span>
+        <div><h2>S/4HANA Integration</h2><p>Understand what is replicated before designing security.</p></div>
+      </div>
+
+      <p>
+        RDP uses replicated business data for reporting and analysis. SAP's learning content lists objects
+        such as configuration data, organizational data, customers, products, deliveries, packaging elements,
+        packaging compositions, material documents, suppliers, batches, and inventory.
+      </p>
+
+      <div class="data-flow">
+        <div>
+          <strong>S/4HANA / ECC</strong>
+          <ul>
+            <li>Configuration</li>
+            <li>Organizations</li>
+            <li>Products</li>
+            <li>Deliveries</li>
+            <li>Packaging</li>
+          </ul>
+        </div>
+        <div class="large-arrow">→</div>
+        <div>
+          <strong>Integration Layer</strong>
+          <ul>
+            <li>Sustainability Data Integration</li>
+            <li>Push replication / APIs</li>
+            <li>File import where applicable</li>
+          </ul>
+        </div>
+        <div class="large-arrow">→</div>
+        <div>
+          <strong>SAP RDP</strong>
+          <ul>
+            <li>EPR reporting</li>
+            <li>Packaging analysis</li>
+            <li>Compliance</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout">
+        For current S/4HANA integration, SAP also documents Sustainability Data Integration as a common
+        integration capability for sustainability solutions. The exact pattern depends on source-system
+        release, scope, and project design.
+      </div>
+
+      <h3>Important S/4 technical detail</h3>
+      <p>
+        SAP's current S/4HANA documentation describes integration scenarios that can involve OData services,
+        BAdI implementation, OAuth, and RFC configuration. Packaging extraction may require customer-specific
+        ABAP development depending on where packaging data is stored.
+      </p>
+    </section>
+
+    <section id="integration-security">
+      <div class="section-heading">
+        <span>07</span>
+        <div><h2>Integration Security</h2><p>Review identity, transport, authorization, and data.</p></div>
+      </div>
+
+      <div class="cards two">
+        <article class="card numbered">
+          <span>1</span><h3>Authentication</h3>
+          <p>Identify the technical identity used by the integration and how credentials or OAuth clients are governed.</p>
+        </article>
+        <article class="card numbered">
+          <span>2</span><h3>Transport</h3>
+          <p>Confirm HTTPS/TLS, certificate trust, endpoints, and secure destination configuration.</p>
+        </article>
+        <article class="card numbered">
+          <span>3</span><h3>Authorization</h3>
+          <p>Grant only the S/4 and BTP permissions required for the selected integration pattern.</p>
+        </article>
+        <article class="card numbered">
+          <span>4</span><h3>Data Minimization</h3>
+          <p>Review which business fields leave S/4 and ensure the interface does not transfer unnecessary sensitive data.</p>
+        </article>
+      </div>
+
+      <h3>S/4-side review points</h3>
+      <div class="terminal">
+        <span>Potential areas depending on architecture:</span>
+        <code>STRUST      Certificate trust</code>
+        <code>SM59        RFC / HTTP destination-related configuration</code>
+        <code>OAuth       Client / token configuration</code>
+        <code>PFCG        Least-privilege technical role</code>
+        <code>OData       Required services and authorizations</code>
+        <code>ABAP/BAdI   Customer-specific extraction logic</code>
+      </div>
+
+      <div class="callout warning">
+        Do not create a technical PFCG role from assumptions. First establish the chosen integration pattern,
+        exact services/APIs, extraction logic, technical identity, and required data objects.
+      </div>
+    </section>
+
+    <section id="review">
+      <div class="section-heading">
+        <span>08</span>
+        <div><h2>Project Security Review</h2><p>A practical checklist for an RDP implementation.</p></div>
+      </div>
+
+      <table class="review-table">
+        <thead><tr><th>Area</th><th>Capture / Review</th></tr></thead>
+        <tbody>
+          <tr><td>Identity Provider</td><td>Trust model, IAS/IdP, SSO and MFA policy</td></tr>
+          <tr><td>Provisioning</td><td>Joiner / mover / leaver process and group mappings</td></tr>
+          <tr><td>RDP Roles</td><td>SAP-delivered roles actually required by each persona</td></tr>
+          <tr><td>Role Collections</td><td>Customer business-role design and naming standard</td></tr>
+          <tr><td>Segregation of Duties</td><td>Conflicting roles and privileged combinations</td></tr>
+          <tr><td>BTP Administration</td><td>Who has subaccount and security administration rights</td></tr>
+          <tr><td>Source Systems</td><td>S/4/ECC systems connected to RDP</td></tr>
+          <tr><td>Technical Identities</td><td>OAuth clients, service users, secret ownership and rotation</td></tr>
+          <tr><td>S/4 Authorizations</td><td>PFCG roles, OData/RFC/API privileges, custom extractors</td></tr>
+          <tr><td>Certificates</td><td>TLS trust, expiry and renewal ownership</td></tr>
+          <tr><td>Data Scope</td><td>Objects and fields transferred from source systems</td></tr>
+          <tr><td>Monitoring</td><td>Authentication, authorization, integration and replication failures</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Four-layer security model</h3>
+      <div class="layers">
+        <div><strong>1. Identity</strong><span>Corporate IdP • IAS • SSO</span></div>
+        <div><strong>2. BTP Authorization</strong><span>Role Collections • RDP Roles</span></div>
+        <div><strong>3. Application Security</strong><span>RDP business functions • data access</span></div>
+        <div><strong>4. Integration Security</strong><span>S/4 technical identity • OAuth • TLS • APIs</span></div>
+      </div>
+    </section>
+
+    <section id="cheatsheet">
+      <div class="section-heading">
+        <span>09</span>
+        <div><h2>Security Cheat Sheet</h2><p>Questions to ask when a requirement arrives.</p></div>
+      </div>
+
+      <div class="questions">
+        <article>
+          <strong>Human access?</strong>
+          <p>Which identity, role collection, RDP roles, data scope and SoD rules apply?</p>
+        </article>
+        <article>
+          <strong>System integration?</strong>
+          <p>Which technical identity, protocol, endpoint, credentials and S/4 authorizations are required?</p>
+        </article>
+        <article>
+          <strong>New role request?</strong>
+          <p>Which persona owns the task? Can an existing role collection satisfy it?</p>
+        </article>
+        <article>
+          <strong>New data feed?</strong>
+          <p>What data leaves S/4, why is it required, and who can trigger or administer the replication?</p>
+        </article>
+      </div>
+
+      <div class="memory-box">
+        <strong>Remember this:</strong>
+        <code>Human IAM: IdP → User → Role Collection → RDP Role</code>
+        <code>Machine IAM: S/4 → Technical Identity → OAuth/API → RDP</code>
+      </div>
+    </section>
+
+    <section id="materials">
+      <div class="section-heading">
+        <span>10</span>
+        <div><h2>Official Learning Materials</h2><p>Use current SAP sources as the source of truth.</p></div>
+      </div>
+
+      <div class="resource-list">
+        <a href="https://learning.sap.com/courses/administering-sap-responsible-design-and-production" target="_blank" rel="noopener">
+          <strong>Administering SAP Responsible Design and Production</strong>
+          <span>SAP Learning course covering administration, replication, data access and reporting.</span>
+        </a>
+        <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/user-administration-and-authentication" target="_blank" rel="noopener">
+          <strong>User Administration and Authentication</strong>
+          <span>RDP authentication and BTP user-management reference.</span>
+        </a>
+        <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/security-recommendations" target="_blank" rel="noopener">
+          <strong>Security Recommendations</strong>
+          <span>Fine-grained roles, SoD guidance and security configuration recommendations.</span>
+        </a>
+        <a href="https://learning.sap.com/courses/administering-sap-responsible-design-and-production/replicating-data-to-sap-responsible-design-and-production" target="_blank" rel="noopener">
+          <strong>Replicating Data to RDP</strong>
+          <span>Source systems, object types and replication patterns.</span>
+        </a>
+        <a href="https://help.sap.com/docs/SAP_SUS_SDI/b15a1be1941c44d4be60ba206536283d/4b971e9c83644628a26500ed476bfa69.html" target="_blank" rel="noopener">
+          <strong>Sustainability Data Integration</strong>
+          <span>SAP's common inbound integration capability for sustainability solutions.</span>
+        </a>
+      </div>
+
+      <div class="callout important">
+        SAP cloud services evolve. Before implementing a production security design, validate role names,
+        integration options and recommendations against the current SAP Help Portal for your tenant and release.
+      </div>
+    </section>
+
+    <footer>
+      <span>SAP RDP Security Learning Guide</span>
+      <span>Static reference site • built for repeat review</span>
+    </footer>
+  </main>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const menuButton = document.getElementById('menuButton');
+  menuButton.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  document.querySelectorAll('.sidebar a').forEach(link => {
+    link.addEventListener('click', () => sidebar.classList.remove('open'));
+  });
+
+  const sections = [...document.querySelectorAll('main section, header.hero')];
+  const links = [...document.querySelectorAll('.sidebar nav a')];
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(a => a.classList.toggle(
+          'active',
+          a.getAttribute('href') === '#' + entry.target.id
+        ));
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+</script>
+</body>
+</html>
