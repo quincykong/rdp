@@ -229,6 +229,26 @@ th { background:#eaf2f8; font-size:13px; text-transform:uppercase; letter-spacin
 td { font-size:14px; }
 tbody tr:last-child td { border-bottom:0; }
 
+.table-scroll { width:100%; overflow-x:auto; margin:22px 0; border-radius:10px; box-shadow:0 0 0 1px var(--line); }
+.table-scroll table { min-width:720px; margin:0; border-radius:0; }
+.table-scroll:focus { outline:3px solid rgba(10,110,209,.28); outline-offset:3px; }
+.compact-table { min-width:680px !important; }
+.role-matrix table { min-width:1320px; }
+.role-matrix th:first-child, .role-matrix td:first-child { width:220px; }
+.role-matrix code { overflow-wrap:anywhere; }
+.level { display:inline-block; min-width:64px; padding:3px 8px; border-radius:999px; text-align:center; font-size:12px; font-weight:800; }
+.level.read { background:#e8f5ec; color:#256f3a; }
+.level.maintain { background:#eaf3fc; color:#075caf; }
+.level.admin { background:#fff0ed; color:#aa0808; }
+
+.authorization-chain { max-width:720px; margin:30px auto; display:grid; justify-items:center; }
+.authorization-chain > div { width:100%; padding:16px 20px; display:flex; justify-content:space-between; gap:24px; background:var(--surface); border:1px solid #a8cae8; border-radius:10px; }
+.authorization-chain > div:nth-of-type(3) { background:#eef7ff; border-color:#6daee5; }
+.authorization-chain > div:nth-of-type(4) { background:#eff9f8; border-color:#72bdb8; }
+.authorization-chain > div:nth-of-type(5) { background:#f4f1ff; border-color:#b6a8e3; }
+.authorization-chain span:not(.chain-arrow) { color:var(--muted); font-size:13px; text-align:right; }
+.chain-arrow { color:var(--accent); font-size:22px; line-height:1; padding:6px; }
+
 .pill-grid { display:flex; flex-wrap:wrap; gap:9px; margin:18px 0; }
 .pill-grid span { background:#eaf2f8; border:1px solid #d4e3ee; border-radius:999px; padding:8px 12px; font-family:monospace; font-size:13px; }
 .muted { color:var(--muted); font-size:13px; }
@@ -304,5 +324,7 @@ footer {
   .hero-grid { gap:22px; flex-wrap:wrap; }
   .section-heading h2 { font-size:25px; }
   .layers div { flex-direction:column; gap:2px; }
-  table { display:block; overflow-x:auto; }
+  table:not(.table-scroll table) { display:block; overflow-x:auto; }
+  .authorization-chain > div { flex-direction:column; gap:2px; }
+  .authorization-chain span:not(.chain-arrow) { text-align:left; }
 }

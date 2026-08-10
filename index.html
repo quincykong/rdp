@@ -24,12 +24,14 @@
       <a href="#architecture">02. Architecture</a>
       <a href="#authentication">03. Authentication</a>
       <a href="#authorization">04. Roles & Collections</a>
-      <a href="#role-design">05. Security Role Design</a>
-      <a href="#integration">06. S/4 Integration</a>
-      <a href="#integration-security">07. Integration Security</a>
-      <a href="#review">08. Security Review</a>
-      <a href="#cheatsheet">09. Cheat Sheet</a>
-      <a href="#materials">10. Learning Materials</a>
+      <a href="#role-matrix">05. RDP Role Matrix</a>
+      <a href="#authorization-model">06. Authorization Model</a>
+      <a href="#sod">07. SoD</a>
+      <a href="#integration">08. S/4 Integration</a>
+      <a href="#integration-security">09. Integration Security</a>
+      <a href="#security-checklist">10. Design Checklist</a>
+      <a href="#cheatsheet">11. Cheat Sheet</a>
+      <a href="#materials">12. Learning Materials</a>
     </nav>
 
     <div class="sidebar-note">
@@ -49,7 +51,7 @@
       <div class="hero-grid">
         <div><strong>4</strong><span>Security layers</span></div>
         <div><strong>2</strong><span>Identity flows</span></div>
-        <div><strong>10</strong><span>Reference sections</span></div>
+        <div><strong>12</strong><span>Reference sections</span></div>
       </div>
     </header>
 
@@ -204,49 +206,109 @@
       </p>
     </section>
 
-    <section id="role-design">
+    <section id="role-matrix">
       <div class="section-heading">
         <span>05</span>
-        <div><h2>Security Role Design</h2><p>Build role collections around business personas.</p></div>
+        <div><h2>RDP Security Role Matrix</h2><p>Map SAP-delivered roles to customer-defined business access.</p></div>
       </div>
-
-      <p>Example customer-designed role collections:</p>
-      <div class="pill-grid">
-        <span>Z_RDP_REPORT_VIEWER</span>
-        <span>Z_RDP_COMPLIANCE_ANALYST</span>
-        <span>Z_RDP_PACKAGING_SPECIALIST</span>
-        <span>Z_RDP_CONFIGURATION_EXPERT</span>
-        <span>Z_RDP_INTEGRATION_ADMIN</span>
-      </div>
-
-      <p class="muted">
-        These are example customer naming conventions—not SAP-delivered role names.
-      </p>
-
-      <h3>Illustrative persona model</h3>
-      <table>
-        <thead>
-          <tr><th>Persona</th><th>Typical Access</th><th>Keep Separate From</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Compliance Analyst</td><td>Execute/analyze reports and obligations</td><td>High-risk configuration administration</td></tr>
-          <tr><td>Packaging Specialist</td><td>Packaging data and related analysis</td><td>Integration administration</td></tr>
-          <tr><td>Configuration Expert</td><td>Configuration and reporting setup</td><td>Conflicting operational privileges</td></tr>
-          <tr><td>Integration Administrator</td><td>Source systems and replication</td><td>Unnecessary business-processing access</td></tr>
-        </tbody>
-      </table>
 
       <div class="callout important">
-        <strong>Documented SoD examples:</strong> SAP currently identifies conflicts including
-        <code>RDP_Report_Enabler</code> with <code>RDP_Report_Configuration_Expert</code>, and
-        <code>RDP_Data_Access_Admin</code> with <code>RDP_Report_Execution_Expert</code>.
-        Always check the current SAP Security Recommendations before finalizing a role model.
+        <strong>Naming boundary:</strong> matrix role names are SAP-delivered application or service roles.
+        Names beginning with <code>Z_RDP_</code> are proposed customer role collections—not SAP-delivered
+        content. Confirm the roles available in the target BTP subaccount before implementation.
       </div>
+
+      <h3>Proposed customer role collections</h3>
+      <div class="pill-grid">
+        <span>Z_RDP_REPORT_VIEWER</span><span>Z_RDP_COMPLIANCE_ANALYST</span>
+        <span>Z_RDP_PACKAGING_SPECIALIST</span><span>Z_RDP_REPORT_CONFIG</span>
+        <span>Z_RDP_DATA_ADMIN</span><span>Z_RDP_INTEGRATION_ADMIN</span>
+        <span>Z_RDP_SECURITY_ADMIN</span>
+      </div>
+
+      <div class="table-scroll" role="region" aria-label="Proposed customer role collections" tabindex="0">
+        <table class="compact-table">
+          <thead><tr><th>Business persona</th><th>Customer role collection</th><th>Design intent</th></tr></thead>
+          <tbody>
+            <tr><td>Report Viewer</td><td><code>Z_RDP_REPORT_VIEWER</code></td><td>Read report outputs, balances, fees, and assigned reporting data.</td></tr>
+            <tr><td>Compliance Analyst</td><td><code>Z_RDP_COMPLIANCE_ANALYST</code></td><td>Execute reports, investigate issues, and process compliance documents.</td></tr>
+            <tr><td>Packaging Specialist</td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Review and maintain product, customer, packaging, and design-rule data.</td></tr>
+            <tr><td>Report Configuration Expert</td><td><code>Z_RDP_REPORT_CONFIG</code></td><td>Configure and develop reports without enabling SAP report categories.</td></tr>
+            <tr><td>Data Access Administrator</td><td><code>Z_RDP_DATA_ADMIN</code></td><td>Grant company-code and sales-organization data access.</td></tr>
+            <tr><td>Integration Administrator</td><td><code>Z_RDP_INTEGRATION_ADMIN</code></td><td>Configure source systems, extensions, imports, and replication runs.</td></tr>
+            <tr><td>RDP Security Administrator</td><td><code>Z_RDP_SECURITY_ADMIN</code></td><td>Govern role collections and group mappings without routine business access.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>SAP-delivered role mapping</h3>
+      <p class="muted">Privilege levels and customer mappings are consultant recommendations, not SAP-delivered attributes. This practical baseline covers roles relevant to the seven personas; use SAP's live catalog for feature-specific roles.</p>
+      <div class="table-scroll role-matrix" role="region" aria-label="SAP RDP role matrix" tabindex="0">
+        <table>
+          <thead><tr><th>SAP role name</th><th>Functional purpose</th><th>Typical persona</th><th>Level</th><th>Recommended customer collection</th><th>Potential SoD concern</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>RDP_Balance_Expert_Viewer</code></td><td>View packaging inventory balance data.</td><td>Report Viewer</td><td><span class="level read">Read</span></td><td><code>Z_RDP_REPORT_VIEWER</code></td><td>Low alone.</td><td>Read-only balance access.</td></tr>
+            <tr><td><code>RDP_Data_Import_Viewer</code></td><td>View replicated business and configuration data.</td><td>Report Viewer</td><td><span class="level read">Read</span></td><td><code>Z_RDP_REPORT_VIEWER</code></td><td>May expose broad replicated data.</td><td>Data restrictions still apply where supported.</td></tr>
+            <tr><td><code>RDP_Packaging_Fee_Info_User</code></td><td>Review simulated packaging fees.</td><td>Report Viewer</td><td><span class="level read">Read</span></td><td><code>Z_RDP_REPORT_VIEWER</code></td><td>Commercially sensitive fee visibility.</td><td>Restrict to justified users.</td></tr>
+            <tr><td><code>RDP_Report_Execution_Expert</code></td><td>Run and analyze assigned compliance reports.</td><td>Compliance Analyst</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_COMPLIANCE_ANALYST</code></td><td>Conflicts with <code>RDP_Data_Access_Admin</code>.</td><td>Requires report assignment and data access.</td></tr>
+            <tr><td><code>RDP_Data_Issue_Manager</code></td><td>Resolve data-quality issues.</td><td>Compliance Analyst</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_COMPLIANCE_ANALYST</code></td><td>Changes can affect report results.</td><td>Retain evidence for material corrections.</td></tr>
+            <tr><td><code>RDP_Compliance_Document_Expert</code></td><td>Release declarations of conformity.</td><td>Compliance Analyst</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_COMPLIANCE_ANALYST</code></td><td>Preparation and release may conflict.</td><td>Apply approval controls based on risk.</td></tr>
+            <tr><td><code>RDP_Packaging_Data_Viewer</code></td><td>Verify and review packaging data.</td><td>Packaging Specialist</td><td><span class="level read">Read</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Low alone.</td><td>SAP recommends it for packaging reviewers.</td></tr>
+            <tr><td><code>RDP_Packaging_Data_Expert</code></td><td>Maintain packaging elements and compositions.</td><td>Packaging Specialist</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Changes affect calculations.</td><td>Do not pair with deletion roles by default.</td></tr>
+            <tr><td><code>RDP_Product_Expert</code></td><td>Manage products.</td><td>Packaging Specialist</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Changes affect reporting scope.</td><td>Grant only for local maintenance.</td></tr>
+            <tr><td><code>RDP_Customer_Expert</code></td><td>Manage customers.</td><td>Packaging Specialist</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Changes affect reporting attribution.</td><td>Grant only for local maintenance.</td></tr>
+            <tr><td><code>RDP_Design_Rules_Expert</code></td><td>Manage packaging design rules.</td><td>Packaging Specialist</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Changes affect assessments.</td><td>Use peer review.</td></tr>
+            <tr><td><code>RDP_Ecomodulation_Maintainer</code></td><td>Maintain eco-modulation ratings and criteria.</td><td>Packaging Specialist</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_PACKAGING_SPECIALIST</code></td><td>Adjustments can affect fees.</td><td>Review manual adjustments.</td></tr>
+            <tr><td><code>RDP_Report_Configuration_Expert</code></td><td>Configure reports and report categories.</td><td>Report Configuration Expert</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_REPORT_CONFIG</code></td><td>Conflicts with <code>RDP_Report_Enabler</code>.</td><td>Keep enablement separate.</td></tr>
+            <tr><td><code>RDP_Report_Developer</code></td><td>Manage and delete report categories.</td><td>Report Configuration Expert</td><td><span class="level maintain">Maintain</span></td><td><code>Z_RDP_REPORT_CONFIG</code></td><td>Development plus execution reduces independent review.</td><td>Separate build and run for high-risk reports.</td></tr>
+            <tr><td><code>RDP_Report_Enabler</code></td><td>Enable or disable SAP-provided report categories.</td><td>RDP Security Administrator</td><td><span class="level admin">Admin</span></td><td><code>Z_RDP_SECURITY_ADMIN</code></td><td>Conflicts with report configuration.</td><td>Prefer time-bound assignment.</td></tr>
+            <tr><td><code>RDP_Data_Access_Admin</code></td><td>Manage organizational data access.</td><td>Data Access Administrator</td><td><span class="level admin">Admin</span></td><td><code>Z_RDP_DATA_ADMIN</code></td><td>Conflicts with report execution.</td><td>Avoid Unlimited Access by default.</td></tr>
+            <tr><td><code>RDP_Data_Import_Expert</code></td><td>Manage replication and file import.</td><td>Integration Administrator</td><td><span class="level admin">Admin</span></td><td><code>Z_RDP_INTEGRATION_ADMIN</code></td><td>Can influence report input data.</td><td>Separate from report approval.</td></tr>
+            <tr><td><code>SUS_Replication_Expert</code></td><td>Create source systems and run replications.</td><td>Integration Administrator</td><td><span class="level admin">Admin</span></td><td><code>Z_RDP_INTEGRATION_ADMIN</code></td><td>Source configuration plus report execution.</td><td>SAP sustainability replication service role.</td></tr>
+            <tr><td><code>SUS_Replication_Configuration_Expert</code></td><td>Configure S/4HANA replication extensions.</td><td>Integration Administrator</td><td><span class="level admin">Admin</span></td><td><code>Z_RDP_INTEGRATION_ADMIN</code></td><td>Can alter replicated scope.</td><td>Use change control and peer review.</td></tr>
+            <tr><td><code>FlexPublicViewEditor</code></td><td>Create and share public views.</td><td>RDP Security Administrator</td><td><span class="level maintain">Maintain</span></td><td>Separate opt-in collection</td><td>Affects other users' experience.</td><td>Do not add broadly.</td></tr>
+            <tr><td><code>FlexKeyUser</code> + <code>key_user</code></td><td>Use cross-application Adapt UI.</td><td>RDP Security Administrator</td><td><span class="level admin">Admin</span></td><td>Separate key-user collection</td><td>Can change shared UI behavior.</td><td>SAP requires both roles together.</td></tr>
+            <tr><td><code>RDP_System_Configuration_Administrator</code></td><td>Legacy Configuration Cockpit administration.</td><td>Integration Administrator</td><td><span class="level admin">Admin</span></td><td>Do not use for new design</td><td>Broad legacy administration.</td><td><strong>Deprecated by SAP;</strong> validate replacement roles.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warning"><strong>Deletion roles:</strong> SAP delivers narrowly scoped roles such as <code>RDP_Delivery_Data_Deleter</code>, <code>RDP_Product_Data_Deleter</code>, and <code>RDP_PackagingComposition_Data_Deleter</code>. SAP advises keeping these out of other collections and assigning them individually for a limited time.</div>
+    </section>
+
+    <section id="authorization-model">
+      <div class="section-heading"><span>06</span><div><h2>Visual Authorization Model</h2><p>Trace a workforce identity to an RDP function.</p></div></div>
+      <div class="authorization-chain" aria-label="RDP authorization chain">
+        <div><strong>Corporate IdP</strong><span>Authenticates the workforce identity</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
+        <div><strong>BTP User / Group</strong><span>Federated subject and mapped group</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
+        <div><strong>BTP Role Collection</strong><span>Customer-defined persona bundle</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
+        <div><strong>SAP-delivered RDP Roles</strong><span>Application permissions</span></div><span class="chain-arrow" aria-hidden="true">↓</span>
+        <div><strong>RDP Functions</strong><span>Reports, packaging, data access, and administration</span></div>
+      </div>
+      <div class="callout">For every mapping, record the IdP group owner, approver, mapped collection, included SAP roles, and recertification frequency.</div>
+    </section>
+
+    <section id="sod">
+      <div class="section-heading"><span>07</span><div><h2>Segregation of Duties</h2><p>Separate access that can create, grant, execute, or erase evidence.</p></div></div>
+      <div class="table-scroll" role="region" aria-label="RDP segregation of duties matrix" tabindex="0">
+        <table>
+          <thead><tr><th>Conflicting combination</th><th>Rationale</th><th>Recommended mitigation</th><th>Basis</th></tr></thead>
+          <tbody>
+            <tr><td><code>RDP_Report_Enabler</code> + <code>RDP_Report_Configuration_Expert</code></td><td>One person could make categories available and configure their use.</td><td>Separate collections and approvers; review assignments periodically.</td><td>SAP-documented conflict</td></tr>
+            <tr><td><code>RDP_Data_Access_Admin</code> + <code>RDP_Report_Execution_Expert</code></td><td>A user could grant themselves access to arbitrary delivery data and view it in reports.</td><td>Separate administration from execution; monitor grants and avoid Unlimited Access.</td><td>SAP Security Recommendations</td></tr>
+            <tr><td>Deletion role + report execution/configuration</td><td>A user could remove evidence that drives report output.</td><td>Temporary collection, ticket approval, expiry, and audit-log review.</td><td>Derived from SAP deletion guidance</td></tr>
+            <tr><td>Replication administration + report approval</td><td>A user could alter incoming data and approve the resulting output.</td><td>Separate technical operations from business sign-off; reconcile logs.</td><td>Recommended project control</td></tr>
+            <tr><td>Packaging/data maintenance + compliance release</td><td>A user could change underlying data and release the affected declaration.</td><td>Maker-checker approval and retained review evidence.</td><td>Recommended project control</td></tr>
+            <tr><td>BTP role administration + routine RDP access</td><td>An administrator could assign or expand their own access.</td><td>Dual approval, privileged identities, access logs, and recertification.</td><td>Recommended IAM control</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout important">Only rows explicitly labeled SAP-documented are SAP-stated conflicts. The others are consultant controls to assess against customer policy.</div>
     </section>
 
     <section id="integration">
       <div class="section-heading">
-        <span>06</span>
+        <span>08</span>
         <div><h2>S/4HANA Integration</h2><p>Understand what is replicated before designing security.</p></div>
       </div>
 
@@ -303,7 +365,7 @@
 
     <section id="integration-security">
       <div class="section-heading">
-        <span>07</span>
+        <span>09</span>
         <div><h2>Integration Security</h2><p>Review identity, transport, authorization, and data.</p></div>
       </div>
 
@@ -343,10 +405,10 @@
       </div>
     </section>
 
-    <section id="review">
+    <section id="security-checklist">
       <div class="section-heading">
-        <span>08</span>
-        <div><h2>Project Security Review</h2><p>A practical checklist for an RDP implementation.</p></div>
+        <span>10</span>
+        <div><h2>Security Design Checklist</h2><p>A consultant-ready implementation and review checklist.</p></div>
       </div>
 
       <table class="review-table">
@@ -354,7 +416,7 @@
         <tbody>
           <tr><td>Identity Provider</td><td>Trust model, IAS/IdP, SSO and MFA policy</td></tr>
           <tr><td>Provisioning</td><td>Joiner / mover / leaver process and group mappings</td></tr>
-          <tr><td>RDP Roles</td><td>SAP-delivered roles actually required by each persona</td></tr>
+          <tr><td>RDP Roles</td><td>Export the tenant catalog; record role, purpose, owner, and mapped persona</td></tr>
           <tr><td>Role Collections</td><td>Customer business-role design and naming standard</td></tr>
           <tr><td>Segregation of Duties</td><td>Conflicting roles and privileged combinations</td></tr>
           <tr><td>BTP Administration</td><td>Who has subaccount and security administration rights</td></tr>
@@ -364,6 +426,11 @@
           <tr><td>Certificates</td><td>TLS trust, expiry and renewal ownership</td></tr>
           <tr><td>Data Scope</td><td>Objects and fields transferred from source systems</td></tr>
           <tr><td>Monitoring</td><td>Authentication, authorization, integration and replication failures</td></tr>
+          <tr><td>Audit Logging</td><td>Event coverage, retention, archive process, and review ownership</td></tr>
+          <tr><td>Privileged Access</td><td>Named admin identities, MFA, dual approval, emergency access, and time limits</td></tr>
+          <tr><td>Deletion Access</td><td>Temporary collections, ticket evidence, expiry, and post-use review</td></tr>
+          <tr><td>Recertification</td><td>Frequency, reviewers, evidence retention, and removal SLA</td></tr>
+          <tr><td>Testing</td><td>Positive/negative persona, SoD, data-scope, and deprovisioning tests</td></tr>
         </tbody>
       </table>
 
@@ -378,7 +445,7 @@
 
     <section id="cheatsheet">
       <div class="section-heading">
-        <span>09</span>
+        <span>11</span>
         <div><h2>Security Cheat Sheet</h2><p>Questions to ask when a requirement arrives.</p></div>
       </div>
 
@@ -410,11 +477,15 @@
 
     <section id="materials">
       <div class="section-heading">
-        <span>10</span>
+        <span>12</span>
         <div><h2>Official Learning Materials</h2><p>Use current SAP sources as the source of truth.</p></div>
       </div>
 
       <div class="resource-list">
+        <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/initial-configuration-roles" target="_blank" rel="noopener">
+          <strong>Initial Configuration - Roles</strong>
+          <span>Current standard role catalog, SAP example role collections, and documented SoD guidance.</span>
+        </a>
         <a href="https://learning.sap.com/courses/administering-sap-responsible-design-and-production" target="_blank" rel="noopener">
           <strong>Administering SAP Responsible Design and Production</strong>
           <span>SAP Learning course covering administration, replication, data access and reporting.</span>
@@ -426,6 +497,14 @@
         <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/security-recommendations" target="_blank" rel="noopener">
           <strong>Security Recommendations</strong>
           <span>Fine-grained roles, SoD guidance and security configuration recommendations.</span>
+        </a>
+        <a href="https://help.sap.com/docs/authorization-and-trust-management-service/authorization-and-trust-management/roles-and-role-collections" target="_blank" rel="noopener">
+          <strong>SAP BTP Roles and Role Collections</strong>
+          <span>Official authorization model for roles, collections, users, and groups.</span>
+        </a>
+        <a href="https://help.sap.com/docs/sap-responsible-design-and-production/user-guide-sap-rdp/delete-replicated-data" target="_blank" rel="noopener">
+          <strong>Delete Data</strong>
+          <span>SAP guidance for dedicated deletion roles, audit logging, and time-limited assignment.</span>
         </a>
         <a href="https://learning.sap.com/courses/administering-sap-responsible-design-and-production/replicating-data-to-sap-responsible-design-and-production" target="_blank" rel="noopener">
           <strong>Replicating Data to RDP</strong>

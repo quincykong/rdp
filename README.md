@@ -7,10 +7,12 @@ A static reference site for learning SAP Responsible Design and Production (RDP)
 - SAP RDP architecture
 - SAP BTP authentication
 - Roles and role collections
-- Example security role design
+- SAP-delivered role matrix and proposed customer role collections
+- Segregation-of-duties risks and mitigations
+- Visual authorization model
 - S/4HANA / ECC integration
 - Integration security
-- Project security-review checklist
+- Consultant security-design checklist
 - Quick-reference cheat sheet
 - Official SAP learning links
 
