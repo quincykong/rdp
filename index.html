@@ -34,7 +34,8 @@
       <a href="#integration-security">12. Integration Security</a>
       <a href="#security-checklist">13. Design Checklist</a>
       <a href="#cheatsheet">14. Cheat Sheet</a>
-      <a href="#materials">15. Learning Materials</a>
+      <a href="#case-study">15. Implementation Case</a>
+      <a href="#materials">16. Learning Materials</a>
     </nav>
 
     <div class="sidebar-note">
@@ -54,7 +55,7 @@
       <div class="hero-grid">
         <div><strong>4</strong><span>Security layers</span></div>
         <div><strong>2</strong><span>Identity flows</span></div>
-        <div><strong>15</strong><span>Reference sections</span></div>
+        <div><strong>16</strong><span>Reference sections</span></div>
       </div>
     </header>
 
@@ -580,9 +581,135 @@
       </div>
     </section>
 
-    <section id="materials">
+    <section id="case-study">
       <div class="section-heading">
         <span>15</span>
+        <div><h2>Implementation Case Study</h2><p>Apply the concepts to a realistic RDP security design.</p></div>
+      </div>
+
+      <div class="case-brief">
+        <span class="card-kicker">Fictional implementation</span>
+        <h3>NorthStar Consumer Products</h3>
+        <p>
+          NorthStar sells packaged consumer goods through legal entities in Canada, Germany, and the United
+          Kingdom. It is implementing SAP Responsible Design and Production to prepare EPR declarations,
+          analyze packaging fees, and improve packaging data quality. Product, organization, delivery, and
+          packaging data originates in SAP S/4HANA and is replicated through SAP BTP.
+        </p>
+      </div>
+
+      <h3>Project requirements</h3>
+      <ul class="checklist">
+        <li>Use separate production and non-production BTP security boundaries.</li>
+        <li>Authenticate workforce users with the corporate IdP and require MFA for administrators.</li>
+        <li>Assign RDP access through governed IdP groups and customer role collections.</li>
+        <li>Restrict compliance analysts to the company codes and sales organizations they support.</li>
+        <li>Replicate SAP S/4HANA data using controlled technical identities and encrypted connections.</li>
+        <li>Prevent report configuration, data-access administration, replication, and report approval from concentrating in one person.</li>
+        <li>Retain evidence for access changes, data corrections, report execution, integration changes, and emergency deletion.</li>
+      </ul>
+
+      <div class="case-personas">
+        <article><strong>Maya Chen</strong><span>Canadian compliance analyst</span><code>Z_RDP_COMPLIANCE_ANALYST</code></article>
+        <article><strong>Jonas Weber</strong><span>Packaging specialist</span><code>Z_RDP_PACKAGING_SPECIALIST</code></article>
+        <article><strong>Aisha Khan</strong><span>Report configuration expert</span><code>Z_RDP_REPORT_CONFIG</code></article>
+        <article><strong>Luc Martin</strong><span>Data access administrator</span><code>Z_RDP_DATA_ADMIN</code></article>
+        <article><strong>Priya Nair</strong><span>Integration administrator</span><code>Z_RDP_INTEGRATION_ADMIN</code></article>
+        <article><strong>Elena Rossi</strong><span>RDP security administrator</span><code>Z_RDP_SECURITY_ADMIN</code></article>
+      </div>
+
+      <h3>Guided implementation exercises</h3>
+      <div class="case-exercises">
+        <article id="case-landscape">
+          <span class="exercise-number">1</span>
+          <div>
+            <h3>Design the BTP landscape</h3>
+            <p>Propose the account boundaries for non-production and production. Record the region, subscriptions, administrators, trust configuration, destinations, and integration resources owned by each boundary.</p>
+            <a class="concept-link" href="#btp-foundations">Review concept: BTP Security Boundaries ↑</a>
+            <details><summary>Show model answer</summary><p>Use separate production and non-production subaccounts when supported by the licensed RDP landscape. Configure trust, destinations, service credentials, administrators, and audit ownership independently. Do not assume a global-account administrator needs routine RDP or production-subaccount access.</p></details>
+          </div>
+        </article>
+
+        <article id="case-identity">
+          <span class="exercise-number">2</span>
+          <div>
+            <h3>Design identity and group mapping</h3>
+            <p>Define IdP groups for the six named users, map each group to the appropriate <code>Z_RDP_*</code> collection, and document joiner, mover, leaver, MFA, and emergency-access controls.</p>
+            <a class="concept-link" href="#identity-lifecycle">Review concept: Identity Lifecycle & Trust ↑</a>
+            <details><summary>Show model answer</summary><p>Create one governed IdP group per business collection, with a business owner and security approver. Map groups to BTP role collections and avoid direct assignments except controlled emergency access. Test user disablement, group removal, persona transfer, and administrator termination.</p></details>
+          </div>
+        </article>
+
+        <article id="case-access">
+          <span class="exercise-number">3</span>
+          <div>
+            <h3>Build the persona access model</h3>
+            <p>Select the SAP-delivered roles for each customer collection. Give Maya access only to the Canadian reporting scope and decide whether Jonas requires maintain or read-only packaging access.</p>
+            <a class="concept-link" href="#role-matrix">Review concept: RDP Security Role Matrix ↑</a>
+            <details><summary>Show model answer</summary><p>Maya receives report execution and justified analysis roles through <code>Z_RDP_COMPLIANCE_ANALYST</code>, plus application-level data access limited to the Canadian organization scope. Jonas receives maintain roles only if he owns packaging corrections; reviewers should receive viewer access instead.</p></details>
+          </div>
+        </article>
+
+        <article id="case-sod">
+          <span class="exercise-number">4</span>
+          <div>
+            <h3>Resolve access conflicts</h3>
+            <p>Aisha requests report enablement in addition to report configuration. Luc requests report execution to test the access he grants. Decide whether either request should be approved.</p>
+            <a class="concept-link" href="#sod">Review concept: Segregation of Duties ↑</a>
+            <details><summary>Show model answer</summary><p>Reject both standing combinations. SAP documents the report-enabler/configuration conflict and the data-access-admin/report-execution conflict. Use separate operators or controlled, independently approved, time-bound access with audit review when no practical alternative exists.</p></details>
+          </div>
+        </article>
+
+        <article id="case-integration">
+          <span class="exercise-number">5</span>
+          <div>
+            <h3>Secure S/4HANA integration</h3>
+            <p>Specify the technical identity, authentication method, destination, Cloud Connector mapping where applicable, S/4 authorizations, certificate ownership, secret rotation, and monitoring evidence.</p>
+            <div class="concept-links"><a class="concept-link" href="#integration">Review: S/4 Integration ↑</a><a class="concept-link" href="#btp-operations">Review: BTP Operations ↑</a><a class="concept-link" href="#integration-security">Review: Integration Security ↑</a></div>
+            <details><summary>Show model answer</summary><p>Use a purpose-specific technical identity with only the required API or replication scopes. Allowlist exact resources, use TLS with a validated chain, store secrets or private keys in approved secure storage, separate development from production, rotate credentials, and monitor authentication, replication, destination, Cloud Connector, and application audit events.</p></details>
+          </div>
+        </article>
+
+        <article id="case-incident">
+          <span class="exercise-number">6</span>
+          <div>
+            <h3>Investigate an access incident</h3>
+            <p>Maya can sign in but cannot see the Canadian report. Walk through the investigation without granting broad access as a shortcut.</p>
+            <a class="concept-link" href="#authorization-model">Review concept: Visual Authorization Model ↑</a>
+            <details><summary>Show model answer</summary><p>Confirm the IdP subject and group assertion, BTP group-to-collection mapping, included RDP execution role, report assignment, and application data access in that order. Review relevant audit events. Correct the failed layer rather than assigning Unlimited Access.</p></details>
+          </div>
+        </article>
+
+        <article id="case-go-live">
+          <span class="exercise-number">7</span>
+          <div>
+            <h3>Approve go-live readiness</h3>
+            <p>Produce the evidence that the security workstream must approve before NorthStar generates its first production declaration.</p>
+            <a class="concept-link" href="#security-checklist">Review concept: Security Design Checklist ↑</a>
+            <details><summary>Show model answer</summary><p>Complete the architecture, identity flow, role matrix, group mappings, SoD register, data-scope approvals, technical-identity inventory, certificate/secret register, audit and monitoring design, positive and negative access tests, deprovisioning test, operational ownership, emergency procedure, and signed go-live checklist.</p></details>
+          </div>
+        </article>
+      </div>
+
+      <h3>Consultant deliverables</h3>
+      <div class="deliverables">
+        <span>Account and subaccount diagram</span><span>Identity and authorization flow</span>
+        <span>Persona-to-role matrix</span><span>IdP group-mapping specification</span>
+        <span>SoD and mitigation register</span><span>Technical identity inventory</span>
+        <span>Certificate and secret register</span><span>Security test evidence</span>
+        <span>Go-live readiness sign-off</span>
+      </div>
+
+      <div class="callout important">
+        <strong>How to use this case:</strong> complete each exercise before opening its model answer. The
+        “Review concept” links return to the relevant reference section; use the browser Back action to resume
+        the exercise at the same point.
+      </div>
+    </section>
+
+    <section id="materials">
+      <div class="section-heading">
+        <span>16</span>
         <div><h2>Official Learning Materials</h2><p>Use current SAP sources as the source of truth.</p></div>
       </div>
 

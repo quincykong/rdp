@@ -16,6 +16,7 @@ A static reference site for learning SAP Responsible Design and Production (RDP)
 - Integration security
 - BTP destinations, Cloud Connector, service credentials, certificates, and audit logging
 - Consultant security-design checklist
+- Guided implementation case study with model answers and concept links
 - Quick-reference cheat sheet
 - Official SAP learning links
 
